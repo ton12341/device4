@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <title>สถานะปั๊มน้ำ พร้อมปุ่มควบคุม</title>
+  <style>
+    body {
+      font-family: 'Prompt', sans-serif;
+      text-align: center;
+      background-color: #f0f8ff;
+      padding: 50px;
+    }
+    h1 {
+      color: #0b5394;
+    }
+    #pumpStatus {
+      font-size: 36px;
+      font-weight: bold;
+      margin-top: 30px;
+    }
+    #pumpIcon {
+      width: 120px;
+      height: 120px;
+      margin-top: 20px;
+    }
+    .btn {
+      font-size: 18px;
+      padding: 12px 30px;
+      margin: 15px 10px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      color: white;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+      transition: background-color 0.3s ease;
+    }
+    #btnOn {
+      background-color: #28a745;
+    }
+    #btnOn:hover {
+      background-color: #218838;
+    }
+    #btnOff {
+      background-color: #dc3545;
+    }
+    #btnOff:hover {
+      background-color: #c82333;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>สถานะปั๊มน้ำ</h1>
+  <div id="pumpStatus">กำลังโหลด...</div>
+  <img id="pumpIcon" src="" alt="Pump Icon" />
+
+  <div>
+    <button id="btnOn" class="btn">เปิดปั๊มน้ำ</button>
+    <button id="btnOff" class="btn">ปิดปั๊มน้ำ</button>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-firestore-compat.js"></script>
+
+  <script>
+    // 🔧 Firebase Config ของคุณ
+    const firebaseConfig = {
+  apiKey: "AIzaSyDhKddDAIVNgsGnDDyY0YbNlJzkyAtPSE4",
+  authDomain: "myiot2-ea76e.firebaseapp.com",
+  projectId: "myiot2-ea76e",
+  storageBucket: "myiot2-ea76e.firebasestorage.app",
+  messagingSenderId: "207422089675",
+  appId: "1:207422089675:web:988416a0e38d8b05be6e4e",
+  measurementId: "G-0ZPJMR7FMM"
+};
+
+
+    // 🔌 เริ่ม Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    const pumpDoc = db.collection("devices3").doc("light3");
+    const statusText = document.getElementById("pumpStatus");
+    const pumpIcon = document.getElementById("pumpIcon");
+
+    // ฟังก์ชันอัพเดตสถานะใน Firestore
+    function updatePumpStatus(newStatus) {
+      pumpDoc.set({ status: newStatus })
+        .catch((error) => {
+          alert("เกิดข้อผิดพลาดในการอัพเดตสถานะ: " + error.message);
+        });
+    }
+
+    // เชื่อมปุ่มกด
+    document.getElementById("btnOn").onclick = () => updatePumpStatus("on");
+    document.getElementById("btnOff").onclick = () => updatePumpStatus("off");
+
+    // ดึงสถานะแบบเรียลไทม์และอัพเดต UI
+    pumpDoc.onSnapshot((doc) => {
+      const data = doc.data();
+      if (data && data.status) {
+        if (data.status === "on") {
+          statusText.textContent = "สถานะ: ปั๊มน้ำกำลังทำงาน 💧";
+          statusText.style.color = "green";
+          pumpIcon.src = "https://cdn-icons-png.flaticon.com/512/2926/2926230.png";
+        } else if (data.status === "off") {
+          statusText.textContent = "สถานะ: ปั๊มน้ำหยุดทำงาน 🛑";
+          statusText.style.color = "red";
+          pumpIcon.src = "https://cdn-icons-png.flaticon.com/512/1828/1828665.png";
+        } else {
+          statusText.textContent = "สถานะ: ไม่ทราบ";
+          statusText.style.color = "gray";
+          pumpIcon.src = "";
+        }
+      } else {
+        statusText.textContent = "ไม่พบข้อมูล";
+        pumpIcon.src = "";
+      }
+    });
+  </script>
+
+</body>
+</html>
